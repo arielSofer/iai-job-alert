@@ -30,7 +30,17 @@ async function fetchJobsForLocation(location) {
             console.log(`Fetching URL: ${url}`);
 
             // Increase navigation timeout to 60 seconds
-            await browserPage.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+            await browserPage.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+            // Wait for content to load (more robust than networkidle2)
+            try {
+                await browserPage.waitForSelector('h3 > a[href^="/job/"]', { timeout: 10000 });
+            } catch (e) {
+                console.log('Timeout waiting for job links selector, page might be empty or blocked');
+            }
+
+            // Small buffer to ensure rendering
+            await new Promise(r => setTimeout(r, 2000));
 
             // Debugging: Log page details
             const pageTitle = await browserPage.title();

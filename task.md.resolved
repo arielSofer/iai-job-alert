@@ -3,7 +3,7 @@
 - [/] Research IAI Jobs website (API/Structure) <!-- id: 0 -->
 - [x] Design System Architecture & Create Implementation Plan <!-- id: 1 -->
 - [x] Configure Mailjet Email Service <!-- id: 8 -->
-- [x] Initialize Project <!-- id: 2 -->
+- [x] Add Multi-Location Support <!-- id: 10 -->
 - [x] Implement Scraper/Fetcher <!-- id: 3 -->
 - [x] Implement User Registration (Frontend + Backend) <!-- id: 4 -->
 - [/] Implement Notification Logic <!-- id: 5 -->

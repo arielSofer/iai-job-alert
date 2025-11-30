@@ -88,10 +88,16 @@ app.post('/api/subscribe', async (req, res) => {
 
         res.json({ message: 'Subscribed successfully! Sending initial job lists...' });
 
-        // Trigger checks for all selected locations
-        for (const loc of locations) {
-            processLocation(loc).catch(err => console.error(`Error in initial check for ${loc}:`, err));
-        }
+        // Trigger checks for all selected locations sequentially to avoid resource exhaustion
+        (async () => {
+            for (const loc of locations) {
+                try {
+                    await processLocation(loc);
+                } catch (err) {
+                    console.error(`Error in initial check for ${loc}:`, err);
+                }
+            }
+        })();
 
     } catch (err) {
         console.error(err);

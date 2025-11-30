@@ -1,4 +1,8 @@
-const puppeteer = require('puppeteer');
+```javascript
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+
 const crypto = require('crypto');
 const db = require('./database');
 
@@ -10,7 +14,7 @@ async function fetchJobsForLocation(location) {
     let allJobs = [];
     let hasMore = true;
 
-    console.log(`Fetching jobs for location: ${location}`);
+    console.log(`Fetching jobs for location: ${ location } `);
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -21,23 +25,28 @@ async function fetchJobsForLocation(location) {
 
     try {
         while (hasMore) {
-            const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;
-            console.log(`Fetching URL: ${url}`);
+            const url = `${ BASE_URL }${ JOB_TYPE_PARAM }& ct=${ encodeURIComponent(location) }& page=${ page } `;
+            console.log(`Fetching URL: ${ url } `);
 
             await browserPage.goto(url, { waitUntil: 'networkidle2' });
 
             // Debugging: Log page details
             const pageTitle = await browserPage.title();
             const content = await browserPage.content();
-            console.log(`Page Title: ${pageTitle}`);
-            console.log(`HTML Length: ${content.length}`);
+            console.log(`Page Title: ${ pageTitle } `);
+            console.log(`HTML Length: ${ content.length } `);
+            
+            if (content.length < 2000) {
+                console.log('Short HTML detected. Dumping content:');
+                console.log(content);
+            }
 
             // Extract jobs
             const jobsOnPage = await browserPage.evaluate((loc) => {
                 const jobs = [];
                 const links = document.querySelectorAll('h3 > a[href^="/job/"]');
-                console.log(`Found ${document.querySelectorAll('h3').length} h3 elements`);
-                console.log(`Found ${links.length} job links`);
+                console.log(`Found ${ document.querySelectorAll('h3').length } h3 elements`);
+                console.log(`Found ${ links.length } job links`);
 
                 links.forEach(link => {
                     const title = link.innerText.trim();
@@ -63,32 +72,32 @@ async function fetchJobsForLocation(location) {
                 allJobs.push({ ...job, id, link: `https://jobs.iai.co.il${job.link}` });
             });
 
-            // Check for next page
-            // We can check if the "Next" button exists and is not disabled
-            const hasNext = await browserPage.evaluate(() => {
-                const nextBtn = document.querySelector('.pagination .next');
-                if (nextBtn && !nextBtn.classList.contains('disabled')) return true;
-                // Also check for "Next" text link if class isn't there
-                const links = Array.from(document.querySelectorAll('a'));
-                return links.some(a => a.innerText.includes('Next') || a.innerText.includes('›'));
-            });
+// Check for next page
+// We can check if the "Next" button exists and is not disabled
+const hasNext = await browserPage.evaluate(() => {
+    const nextBtn = document.querySelector('.pagination .next');
+    if (nextBtn && !nextBtn.classList.contains('disabled')) return true;
+    // Also check for "Next" text link if class isn't there
+    const links = Array.from(document.querySelectorAll('a'));
+    return links.some(a => a.innerText.includes('Next') || a.innerText.includes('›'));
+});
 
-            if (!hasNext) {
-                hasMore = false;
-            } else {
-                page++;
-            }
+if (!hasNext) {
+    hasMore = false;
+} else {
+    page++;
+}
 
-            // Safety break
-            if (page > 10) hasMore = false;
+// Safety break
+if (page > 10) hasMore = false;
         }
     } catch (error) {
-        console.error(`Error fetching page ${page} for ${location}:`, error.message);
-    } finally {
-        await browser.close();
-    }
+    console.error(`Error fetching page ${page} for ${location}:`, error.message);
+} finally {
+    await browser.close();
+}
 
-    return allJobs;
+return allJobs;
 }
 
 async function saveJobs(jobs) {

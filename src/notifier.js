@@ -14,6 +14,14 @@ const transporter = nodemailer.createTransport({
     socketTimeout: 30000,     // 30 seconds
 });
 
+console.log('Email Config:', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_PORT == 465,
+    user: process.env.SMTP_USER ? '***' : 'MISSING',
+    pass: process.env.SMTP_PASS ? '***' : 'MISSING'
+});
+
 async function sendNotification(email, jobs) {
     if (jobs.length === 0) return;
 

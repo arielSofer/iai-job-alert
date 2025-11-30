@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Plan for IAI Student Job Alert Platform. Includes Node.js backend, SQLite DB, Scraper, and Frontend.",
+  "updatedAt": "2025-11-30T09:23:21.001442Z"
+}

@@ -1,0 +1,10 @@
+# Task: IAI Student Job Alert Platform
+
+- [/] Research IAI Jobs website (API/Structure) <!-- id: 0 -->
+- [x] Design System Architecture & Create Implementation Plan <!-- id: 1 -->
+- [x] Initialize Project <!-- id: 2 -->
+- [x] Implement Scraper/Fetcher <!-- id: 3 -->
+- [x] Implement User Registration (Frontend + Backend) <!-- id: 4 -->
+- [/] Implement Notification Logic <!-- id: 5 -->
+- [x] Implement Immediate First Notification <!-- id: 7 -->
+- [x] Verify and Test <!-- id: 6 -->

@@ -1,0 +1,70 @@
+# IAI Student Job Alert Platform Walkthrough
+
+I have successfully built the IAI Student Job Alert Platform. This platform allows students to subscribe to email alerts for new job postings in their residential area.
+
+## Changes Implemented
+
+### Backend
+- **Server**: Express.js server (`src/server.js`) handling API requests and serving the frontend.
+- **Database**: SQLite database (`src/database.js`) storing users, jobs, and notification history.
+- **Scraper**: A robust Puppeteer-based scraper (`src/scraper.js`) that fetches jobs from the IAI website, supporting pagination and location filtering.
+- **Notifier**: An email notification system (`src/notifier.js`) using `nodemailer`.
+
+### Frontend
+- **UI**: A clean, responsive web interface (`public/index.html`, `public/style.css`) for users to subscribe.
+- **Logic**: JavaScript (`public/app.js`) to fetch available locations dynamically and handle form submission.
+
+### Immediate Notification
+- **Feature**: When a user subscribes, the system immediately triggers a job check for their location.
+- **Benefit**: New users receive an email with all currently available jobs right away.
+- **Verification**: Verified that a new user (`curl_test_2@example.com`) received an immediate email with 5 jobs upon subscription.
+
+## Verification Results
+
+### User Registration Flow
+I verified the user registration flow using a browser subagent.
+
+1.  **Navigation**: Successfully loaded the homepage.
+2.  **Form Interaction**: Selected "יהוד" as the location and entered a test email.
+3.  **Submission**: Submitted the form and received the success message: "נרשמת בהצלחה! תקבל עדכון כשתיפתח משרה באזורך."
+4.  **Immediate Check**: Confirmed that the server triggers `processLocation` immediately upon subscription.
+
+### Scraper Logic
+The scraper logic was implemented to handle the specific URL structure of the IAI jobs site.
+- **Puppeteer**: Switched from Axios/Cheerio to Puppeteer to bypass bot detection (User-Agent blocking) and ensure reliable scraping.
+- **Selectors**: Updated to use robust selectors (`h3 > a[href^="/job/"]`) identified via browser inspection.
+
+### Email Configuration
+- **Mailjet**: Configured `nodemailer` to use Mailjet SMTP (`in-v3.mailjet.com`) with the provided API Key and Secret Key.
+- **Sender**: Updated `src/notifier.js` to use the verified sender address `arielvdcr@gmail.com`.
+- **Verification**: Confirmed that emails are successfully sent through Mailjet.
+
+## Deployment Guide
+
+To deploy this application, I recommend using **Render** or **Fly.io**. Both support Docker, which is required for Puppeteer.
+
+### Option 1: Render (Easiest)
+1.  Push your code to **GitHub**.
+2.  Create a new account on [Render.com](https://render.com).
+3.  Click **New +** and select **Web Service**.
+4.  Connect your GitHub repository.
+5.  Select **Docker** as the Runtime.
+6.  Add your Environment Variables (under "Environment"):
+    - `SMTP_HOST`: `in-v3.mailjet.com`
+    - `SMTP_PORT`: `587`
+    - `SMTP_USER`: (Your Mailjet API Key)
+    - `SMTP_PASS`: (Your Mailjet Secret Key)
+7.  Click **Create Web Service**.
+
+> **Note:** On Render's free tier, the database (`jobs.db`) will be reset every time the server restarts. For persistent data, use a paid disk or Option 2.
+
+### Option 2: Fly.io (Persistent Data)
+Fly.io offers persistent storage volumes, which is great for keeping your user database intact.
+
+1.  Install `flyctl` command line tool.
+2.  Run `fly launch` in your project folder.
+3.  When asked about a database, say **No** (we use SQLite).
+4.  Create a volume for the database: `fly volumes create data_volume --size 1`.
+5.  Update `fly.toml` to mount the volume to `/data`.
+6.  Set secrets: `fly secrets set SMTP_USER=... SMTP_PASS=...`
+7.  Run `fly deploy`.

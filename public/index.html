@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>התראות משרות סטודנט - תעשייה אווירית</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>התראות משרות סטודנט - IAI</h1>
+            <p>קבלו עדכון למייל כשנפתחת משרת סטודנט חדשה באזור שלכם.</p>
+        </header>
+
+        <main>
+            <form id="subscribeForm">
+                <div class="form-group">
+                    <label for="email">כתובת אימייל</label>
+                    <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">אזור מגורים</label>
+                    <select id="location" name="location" required>
+                        <option value="" disabled selected>טוען אזורים...</option>
+                    </select>
+                </div>
+
+                <button type="submit">הרשמה להתראות</button>
+            </form>
+            <div id="message" class="message"></div>
+        </main>
+
+        <footer>
+            <p>לא רשמי. נבנה ככלי עזר לסטודנטים.</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

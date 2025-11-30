@@ -19,16 +19,18 @@ async function fetchJobsForLocation(location) {
     const browser = await puppeteer.launch({
         headless: "new",
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        protocolTimeout: 60000 // Increase protocol timeout
     });
     const browserPage = await browser.newPage();
 
     try {
         while (hasMore) {
-            const url = `${BASE_URL}${JOB_TYPE_PARAM}& ct=${encodeURIComponent(location)}& page=${page} `;
-            console.log(`Fetching URL: ${url} `);
+            const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;
+            console.log(`Fetching URL: ${url}`);
 
-            await browserPage.goto(url, { waitUntil: 'networkidle2' });
+            // Increase navigation timeout to 60 seconds
+            await browserPage.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
             // Debugging: Log page details
             const pageTitle = await browserPage.title();

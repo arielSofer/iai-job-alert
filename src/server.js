@@ -106,15 +106,14 @@ cron.schedule('0 * * * *', async () => {
 });
 
 async function checkAndNotify() {
-    // 1. Get all unique locations from users
+    console.log('Running scheduled job check...');
     try {
-        const rows = await dbAll('SELECT DISTINCT location FROM users');
-        const locations = rows.map(row => row.location);
+        // Get all unique locations that have subscribers
+        const locations = await dbAll('SELECT DISTINCT location FROM user_locations');
 
-        for (const location of locations) {
+        for (const { location } of locations) {
             await processLocation(location);
         }
-        console.log('Job check complete.');
     } catch (err) {
         console.error('Error in checkAndNotify:', err);
     }

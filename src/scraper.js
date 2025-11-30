@@ -19,14 +19,14 @@ async function fetchJobsForLocation(location) {
     const browser = await puppeteer.launch({
         headless: "new",
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'],
         protocolTimeout: 60000 // Increase protocol timeout
     });
-    const browserPage = await browser.newPage();
+    const browserPage = await browser.newPage(); await browserPage.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'); await browserPage.setViewport({ width: 1366, height: 768 }); await browserPage.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] }); });
 
     try {
         while (hasMore) {
-            const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;
+            const url = page === 1 ? `${BASE_URL}${JOB_TYPE_PARAM}const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;ct=${encodeURIComponent(location)}` : `${BASE_URL}${JOB_TYPE_PARAM}const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;ct=${encodeURIComponent(location)}const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;page=${page}`;
             console.log(`Fetching URL: ${url}`);
 
             // Increase navigation timeout to 60 seconds
@@ -34,7 +34,7 @@ async function fetchJobsForLocation(location) {
 
             // Wait for content to load (more robust than networkidle2)
             try {
-                await browserPage.waitForSelector('h3 > a[href^="/job/"]', { timeout: 10000 });
+                await browserPage.waitForSelector('h3 > a[href^="/job/"]', { timeout: 30000 });
             } catch (e) {
                 console.log('Timeout waiting for job links selector, page might be empty or blocked');
             }

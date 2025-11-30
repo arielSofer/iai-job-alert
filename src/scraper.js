@@ -26,7 +26,7 @@ async function fetchJobsForLocation(location) {
 
     try {
         while (hasMore) {
-            const url = page === 1 ? `${BASE_URL}${JOB_TYPE_PARAM}const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;ct=${encodeURIComponent(location)}` : `${BASE_URL}${JOB_TYPE_PARAM}const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;ct=${encodeURIComponent(location)}const url = `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;page=${page}`;
+            const url = page === 1 ? `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}` : `${BASE_URL}${JOB_TYPE_PARAM}&ct=${encodeURIComponent(location)}&page=${page}`;
             console.log(`Fetching URL: ${url}`);
 
             // Increase navigation timeout to 60 seconds

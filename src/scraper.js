@@ -15,7 +15,7 @@ async function fetchJobsForLocation(location) {
     const browser = await puppeteer.launch({
         headless: "new",
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
     const browserPage = await browser.newPage();
 
@@ -26,10 +26,18 @@ async function fetchJobsForLocation(location) {
 
             await browserPage.goto(url, { waitUntil: 'networkidle2' });
 
+            // Debugging: Log page details
+            const pageTitle = await browserPage.title();
+            const content = await browserPage.content();
+            console.log(`Page Title: ${pageTitle}`);
+            console.log(`HTML Length: ${content.length}`);
+
             // Extract jobs
             const jobsOnPage = await browserPage.evaluate((loc) => {
                 const jobs = [];
                 const links = document.querySelectorAll('h3 > a[href^="/job/"]');
+                console.log(`Found ${document.querySelectorAll('h3').length} h3 elements`);
+                console.log(`Found ${links.length} job links`);
 
                 links.forEach(link => {
                     const title = link.innerText.trim();

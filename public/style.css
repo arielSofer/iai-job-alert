@@ -96,3 +96,5 @@ footer {
     font-size: 0.8rem;
     color: #999;
 }
+
+.locations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background: #f9f9f9; } .location-checkbox { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; } .location-checkbox input { width: 16px; height: 16px; accent-color: var(--primary-color); }

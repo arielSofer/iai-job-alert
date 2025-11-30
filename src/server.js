@@ -41,35 +41,61 @@ app.get('/api/locations', (req, res) => {
 
 // API: Subscribe
 app.post('/api/subscribe', async (req, res) => {
-    const { email, location } = req.body;
-    if (!email || !location) {
-        return res.status(400).json({ error: 'Email and location are required' });
+    const { email, locations } = req.body;
+    if (!email || !locations || !Array.isArray(locations) || locations.length === 0) {
+        return res.status(400).json({ error: 'Email and at least one location are required' });
     }
 
     try {
-        await dbRun('INSERT INTO users (email, location) VALUES (?, ?)', [email, location]);
-        res.json({ message: 'Subscribed successfully! Sending initial job list...' });
+        // 1. Ensure user exists
+        // We use INSERT OR IGNORE. If it exists, we just get the ID.
+        await dbRun('INSERT OR IGNORE INTO users (email) VALUES (?)', [email]);
 
-        // Trigger immediate check for this location so the user gets their first email right away
-        processLocation(location).catch(err => console.error('Error in initial check:', err));
+        // Get user ID
+        const user = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!user) throw new Error('User creation failed');
+
+        // 2. Update locations (Overwrite strategy)
+        await dbRun('BEGIN TRANSACTION');
+        try {
+            // Remove old locations
+            await dbRun('DELETE FROM user_locations WHERE user_id = ?', [user.id]);
+
+            // Add new locations
+            const stmt = db.prepare('INSERT INTO user_locations (user_id, location) VALUES (?, ?)');
+            const runStmt = (userId, loc) => new Promise((resolve, reject) => {
+                stmt.run(userId, loc, (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+
+            for (const loc of locations) {
+                await runStmt(user.id, loc);
+            }
+            stmt.finalize();
+            await dbRun('COMMIT');
+        } catch (txErr) {
+            await dbRun('ROLLBACK');
+            throw txErr;
+        }
+
+        res.json({ message: 'Subscribed successfully! Sending initial job lists...' });
+
+        // Trigger checks for all selected locations
+        for (const loc of locations) {
+            processLocation(loc).catch(err => console.error(`Error in initial check for ${loc}:`, err));
+        }
 
     } catch (err) {
-        if (err.code === 'SQLITE_CONSTRAINT') {
-            // Update location if user exists
-            try {
-                await dbRun('UPDATE users SET location = ? WHERE email = ?', [location, email]);
-                res.json({ message: 'Subscription updated successfully! Sending updated job list...' });
-
-                // Trigger check for new location
-                processLocation(location).catch(err => console.error('Error in update check:', err));
-            } catch (updateErr) {
-                console.error(updateErr);
-                res.status(500).json({ error: 'Database error during update' });
-            }
-        } else {
-            console.error(err);
-            res.status(500).json({ error: 'Database error' });
-        }
+        console.error(err);
+        res.status(500).json({ error: 'Database error' });
     }
 });
 
@@ -104,7 +130,16 @@ async function processLocation(location) {
 
     // 4. Notify users
     try {
-        const users = await dbAll('SELECT id, email FROM users WHERE location = ?', [location]);
+        // Find users subscribed to this location
+        const users = await dbAll(
+            'SELECT u.id, u.email FROM users u JOIN user_locations ul ON u.id = ul.user_id WHERE ul.location = ?',
+            [location]
+        );
+
+        if (users.length === 0) {
+            console.log(`No users subscribed to ${location}`);
+            return;
+        }
 
         for (const user of users) {
             // Find jobs for this location that this user hasn't been notified about

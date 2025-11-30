@@ -6,11 +6,17 @@ const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
   db.exec(`
-  CREATE TABLE IF NOT EXISTS users(
+  CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE NOT NULL,
-    location TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS user_locations (
+    user_id INTEGER NOT NULL,
+    location TEXT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    PRIMARY KEY (user_id, location)
   );
 
   CREATE TABLE IF NOT EXISTS jobs(

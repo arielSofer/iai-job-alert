@@ -2,34 +2,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     const locationSelect = document.getElementById('location');
     const form = document.getElementById('subscribeForm');
     const messageDiv = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
 
     // Fetch locations
     try {
         const response = await fetch('/api/locations');
         const locations = await response.json();
 
-        locationSelect.innerHTML = '<option value="" disabled selected>בחר אזור מגורים</option>';
+        const container = document.getElementById('locations-container');
+        container.innerHTML = ''; // Clear loading
+
+        if (locations.length === 0) {
+            container.innerHTML = '<div class="error">לא נמצאו אזורים</div>';
+            return;
+        }
+
         locations.forEach(loc => {
-            const option = document.createElement('option');
-            option.value = loc;
-            option.textContent = loc;
-            locationSelect.appendChild(option);
+            const label = document.createElement('label');
+            label.className = 'location-checkbox';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = loc;
+            checkbox.name = 'locations';
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(loc));
+
+            container.appendChild(label);
         });
-    } catch (error) {
-        console.error('Error fetching locations:', error);
-        locationSelect.innerHTML = '<option value="" disabled>שגיאה בטעינת אזורים</option>';
+    } catch (err) {
+        console.error('Error fetching locations:', err);
+        document.getElementById('locations-container').innerHTML = '<div class="error">שגיאה בטעינת האזורים</div>';
     }
 
     // Handle form submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
-        const location = locationSelect.value;
 
-        if (!location) {
-            showMessage('נא לבחור אזור מגורים', 'error');
+        const email = document.getElementById('email').value;
+
+        // Get selected locations
+        const checkboxes = document.querySelectorAll('input[name="locations"]:checked');
+        const selectedLocations = Array.from(checkboxes).map(cb => cb.value);
+
+        if (selectedLocations.length === 0) {
+            messageDiv.className = 'message error';
+            messageDiv.textContent = 'אנא בחר לפחות אזור אחד.';
+            messageDiv.style.display = 'block';
             return;
         }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'נרשם...';
+        messageDiv.style.display = 'none';
 
         try {
             const response = await fetch('/api/subscribe', {
@@ -37,25 +63,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email, location })
+                body: JSON.stringify({ email, locations: selectedLocations })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                showMessage('נרשמת בהצלחה! תקבל עדכון כשתיפתח משרה באזורך.', 'success');
+                messageDiv.className = 'message success';
+                messageDiv.textContent = 'נרשמת בהצלחה! תקבל עדכון כשתיפתח משרה באזורים שבחרת.';
                 form.reset();
+                // Uncheck all
+                document.querySelectorAll('input[name="locations"]').forEach(cb => cb.checked = false);
             } else {
-                showMessage(data.error || 'אירעה שגיאה בהרשמה', 'error');
+                messageDiv.className = 'message error';
+                messageDiv.textContent = data.error || 'שגיאה בהרשמה';
             }
-        } catch (error) {
-            console.error('Error subscribing:', error);
-            showMessage('שגיאת תקשורת', 'error');
+        } catch (err) {
+            console.error('Error:', err);
+            messageDiv.className = 'message error';
+            messageDiv.textContent = 'שגיאה בתקשורת עם השרת';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'הרשמה להתראות';
+            messageDiv.style.display = 'block';
         }
     });
-
-    function showMessage(text, type) {
-        messageDiv.textContent = text;
-        messageDiv.className = `message ${type}`;
-    }
 });
